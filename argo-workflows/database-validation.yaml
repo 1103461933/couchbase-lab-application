@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+
+metadata:
+  generateName: couchbase-validation-
+
+spec:
+
+  entrypoint: validation
+
+  templates:
+
+    - name: validation
+
+      container:
+
+        image: ghcr.io/YOUR_ORG/couchbase-lab-application:latest
+
+        command:
+          - node
+
+        args:
+          - scripts/health-check.js
+
+        envFrom:
+
+          - secretRef:
+              name: couchbase-app
+
+          - configMapRef:
+              name: couchbase-app

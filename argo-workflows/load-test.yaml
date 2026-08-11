@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+
+metadata:
+  generateName: couchbase-load-test-
+
+spec:
+
+  entrypoint: load-test
+
+  arguments:
+
+    parameters:
+
+      - name: records
+        value: "10000"
+
+  templates:
+
+    - name: load-test
+
+      container:
+
+        image: ghcr.io/YOUR_ORG/couchbase-lab-application:latest
+
+        command:
+          - node
+
+        args:
+          - scripts/seed-data.js
+          - "--records"
+          - "{{workflow.parameters.records}}"
+
+        envFrom:
+
+          - secretRef:
+              name: couchbase-app
+
+          - configMapRef:
+              name: couchbase-app

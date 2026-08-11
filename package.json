@@ -1,0 +1,33 @@
+{
+  "name": "couchbase-app",
+  "version": "1.0.0",
+  "description": "Aplicación REST para Couchbase en Kubernetes",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "mocha tests/**/*.test.js --exit",
+    "test:unit": "mocha tests/unit/**/*.test.js --exit",
+    "test:integration": "mocha tests/integration/**/*.test.js --exit",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "seed": "node scripts/seed-data.js",
+    "health": "node scripts/health-check.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "couchbase": "^4.2.9",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "eslint": "^8.46.0",
+    "mocha": "^10.2.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}

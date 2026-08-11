@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+
+metadata:
+  generateName: couchbase-seed-
+
+spec:
+
+  entrypoint: seed-data
+
+  arguments:
+    parameters:
+      - name: image
+        value: ghcr.io/YOUR_ORG/couchbase-lab-application:latest
+
+  templates:
+
+    - name: seed-data
+
+      container:
+        image: "{{workflow.parameters.image}}"
+
+        command:
+          - node
+
+        args:
+          - scripts/seed-data.js
+
+        envFrom:
+          - secretRef:
+              name: couchbase-app
+
+          - configMapRef:
+              name: couchbase-app

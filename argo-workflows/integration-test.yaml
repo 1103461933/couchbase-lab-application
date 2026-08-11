@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+
+metadata:
+  generateName: couchbase-integration-test-
+
+spec:
+
+  entrypoint: integration-test
+
+  templates:
+
+    - name: integration-test
+
+      container:
+        image: ghcr.io/YOUR_ORG/couchbase-lab-application:latest
+
+        command:
+          - npm
+
+        args:
+          - test
+
+        envFrom:
+          - secretRef:
+              name: couchbase-app
+
+          - configMapRef:
+              name: couchbase-app

@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: couchbase-app-dev
+  namespace: argocd
+
+spec:
+
+  project: default
+
+  source:
+    repoURL: https://github.com/YOUR_ORG/couchbase-lab-application.git
+    targetRevision: main
+
+    path: helm/couchbase-app
+
+    helm:
+      valueFiles:
+        - values-dev.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: couchbase-dev
+
+  syncPolicy:
+
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=false
