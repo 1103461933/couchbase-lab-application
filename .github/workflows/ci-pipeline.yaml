@@ -5,11 +5,23 @@ on:
     branches: [dev, main]
     tags:
       - 'v*'
-
-# ❌ ELIMINAR permissions - No es necesario con PAT
-# permissions:
-#   contents: write
-#   id-token: write
+  # ✅ NUEVO: Permite ejecutar manualmente con versión personalizada
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (ej: 1.0.0, 2.1.3)'
+        required: true
+        default: '1.0.0'
+        type: string
+      environment:
+        description: 'Environment (dev, staging, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 env:
   REGISTRY: docker.io
@@ -27,7 +39,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: dev
-          # ✅ Usar PAT para checkout
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set up Docker Buildx
@@ -39,19 +50,30 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract version
+      - name: Determine version
         id: version
         run: |
-          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          # Si es un workflow_dispatch, usar la versión proporcionada
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            ENV="${{ github.event.inputs.environment }}"
+            echo "Using user-provided version: $VERSION"
+          elif [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
+            ENV="prod"
           elif [[ $GITHUB_REF == refs/heads/dev ]]; then
             VERSION=dev-latest
+            ENV="dev"
           elif [[ $GITHUB_REF == refs/heads/main ]]; then
             VERSION=latest
+            ENV="prod"
           else
             VERSION=${GITHUB_SHA::8}
+            ENV="dev"
           fi
+          
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "ENV=$ENV" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
@@ -61,17 +83,18 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+            ${{ env.IMAGE_NAME }}:dev-latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Update Helm values with new image tag
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+      - name: Update Helm values with new version
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: |
           sed -i "s|tag: .*|tag: ${{ env.VERSION }}|g" helm/couchbase-app/values-dev.yaml
 
       - name: Commit and push changes
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
