@@ -2,7 +2,7 @@
 replicaCount: 2
 
 image:
-  repository: yourregistry.azurecr.io/couchbase-app
+  repository: xlen911/couchbase-app
   tag: latest  # Updated by CI pipeline
   pullPolicy: Always
 
