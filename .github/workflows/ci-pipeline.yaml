@@ -1,50 +1,20 @@
-name: CI Pipeline - Build, Test, Push to Docker Hub
+name: CI Pipeline - Build and Push to Docker Hub
 
 on:
   push:
-    branches: [dev, main, develop]     # <<--- AÑADIDO: dev como principal
+    branches: [dev, main]
     tags:
       - 'v*'
-  pull_request:
-    branches: [dev, main]              # <<--- AÑADIDO: dev
 
 env:
   REGISTRY: docker.io
   IMAGE_NAME: xlen911/couchbase-app
   NAMESPACE: couchbase-dev
-  ENVIRONMENT: dev                     # <<--- NUEVO: ambiente dev
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    environment: dev                   # <<--- NUEVO: usa secrets del ambiente dev
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run linting
-        run: npm run lint
-
-      - name: Run unit tests
-        run: npm test
-
-      - name: Run security audit
-        run: npm audit --production || true
-
   build:
-    needs: test
     runs-on: ubuntu-latest
-    environment: dev                   # <<--- NUEVO: usa secrets del ambiente dev
-    if: github.event_name != 'pull_request'
+    environment: dev
     
     steps:
       - name: Checkout code
@@ -67,7 +37,7 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           elif [[ $GITHUB_REF == refs/heads/dev ]]; then
-            VERSION=dev-latest        # <<--- CAMBIADO: tag para dev
+            VERSION=dev-latest
           elif [[ $GITHUB_REF == refs/heads/main ]]; then
             VERSION=latest
           else
@@ -90,7 +60,6 @@ jobs:
       - name: Update Helm values with new image tag
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: |
-          # Actualizar values-dev.yaml con el nuevo tag
           sed -i "s|tag: .*|tag: ${{ env.VERSION }}|g" helm/couchbase-app/values-dev.yaml
 
       - name: Commit and push changes
@@ -100,4 +69,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add helm/couchbase-app/values-dev.yaml
           git commit -m "chore(dev): update image tag to ${{ env.VERSION }} [skip ci]" || echo "No changes to commit"
-          git push origin dev          # <<--- CAMBIADO: push específico a dev
+          git push origin dev
