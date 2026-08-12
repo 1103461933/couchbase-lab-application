@@ -10,10 +10,27 @@ service:
   port: 80
   targetPort: 3000
 
-# ✅ Agregar la sección couchbase
+# ✅ Agregar sección de Ingress
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: couchbase-app.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# ✅ Agregar sección couchbase
 couchbase:
   connectionString: "couchbase://couchbase-cluster.couchbase-dev.svc.cluster.local"
   username: "Administrator"
   password: "TempP@ssw0rd2026!"
   bucket: "customers"
   scope: "sales"
+
+# ✅ Agregar otras configuraciones
+config:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
