@@ -5,4 +5,4 @@ const logger = {
   debug: (...args) => console.debug('[DEBUG]', ...args)
 };
 
-module.exports = logger;
+module.exports = router;
