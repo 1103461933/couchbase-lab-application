@@ -1,73 +1,19 @@
-# Default values for couchbase-app
 replicaCount: 2
 
 image:
-  repository: yourregistry.azurecr.io/couchbase-app
+  repository: xlen911/couchbase-app
   tag: latest
-  pullPolicy: IfNotPresent
-
-nameOverride: ""
-fullnameOverride: ""
+  pullPolicy: Always
 
 service:
   type: ClusterIP
   port: 80
   targetPort: 3000
 
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: couchbase-app.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-
-resources:
-  requests:
-    memory: "256Mi"
-    cpu: "250m"
-  limits:
-    memory: "512Mi"
-    cpu: "500m"
-
-autoscaling:
-  enabled: false
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
-
-secrets:
-  couchbase:
-    connectionString: "couchbase://couchbase-cluster.couchbase-dev.svc.cluster.local"
-    username: "Administrator"
-    password: "TempP@ssw0rd2026!"
-    bucket: "customers"
-    scope: "sales"
-
-config:
-  NODE_ENV: "production"
-  LOG_LEVEL: "info"
-  PORT: "3000"
-  CORS_ORIGIN: "*"
-  QUERY_TIMEOUT: "30000"
-  MAX_QUERY_LIMIT: "1000"
-
-serviceAccount:
-  create: true
-  name: "couchbase-app-sa"
-
-podSecurityContext: {}
-securityContext: {}
-
-nodeSelector: {}
-tolerations: []
-affinity: {}
-
-# Pod disruption budget
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
+# ✅ Agregar la sección couchbase
+couchbase:
+  connectionString: "couchbase://couchbase-cluster.couchbase-dev.svc.cluster.local"
+  username: "Administrator"
+  password: "TempP@ssw0rd2026!"
+  bucket: "customers"
+  scope: "sales"
