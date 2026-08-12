@@ -26,7 +26,6 @@ ingress:
         - couchbase-app-dev.example.com
       secretName: couchbase-app-tls
 
-# ✅ Agregar sección de autoscaling (habilitado en dev)
 autoscaling:
   enabled: true
   minReplicas: 2
@@ -41,9 +40,15 @@ couchbase:
   bucket: "customers"
   scope: "sales"
 
-config:
-  NODE_ENV: "development"
-  LOG_LEVEL: "debug"
+# ✅ Agregar sección de environment
+env:
+  nodeEnv: "development"
+  logLevel: "debug"
+  port: "3000"
+  maxConnections: "50"
+  queryTimeout: "60000"
+  maxQueryLimit: "500"
+  corsOrigin: "*"
 
 resources:
   requests:

@@ -21,7 +21,6 @@ ingress:
           pathType: Prefix
   tls: []
 
-# ✅ Agregar sección de autoscaling
 autoscaling:
   enabled: false
   minReplicas: 2
@@ -36,10 +35,15 @@ couchbase:
   bucket: "customers"
   scope: "sales"
 
-config:
-  NODE_ENV: "production"
-  LOG_LEVEL: "info"
-  PORT: "3000"
+# ✅ Agregar sección de environment
+env:
+  nodeEnv: "production"
+  logLevel: "info"
+  port: "3000"
+  maxConnections: "100"
+  queryTimeout: "30000"
+  maxQueryLimit: "1000"
+  corsOrigin: "*"
 
 resources:
   requests:
