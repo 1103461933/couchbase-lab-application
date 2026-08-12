@@ -11,14 +11,30 @@ service:
   port: 80
   targetPort: 3000
 
-config:
-  NODE_ENV: "development"
-  LOG_LEVEL: "debug"
+# ✅ Agregar sección de Ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: couchbase-app-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - couchbase-app-dev.example.com
+      secretName: couchbase-app-tls
 
-# ✅ Agregar la sección couchbase
+# ✅ Agregar sección couchbase
 couchbase:
   connectionString: "couchbase://couchbase-cluster.couchbase-dev.svc.cluster.local"
   username: "Administrator"
   password: "TempP@ssw0rd2026!"
   bucket: "customers"
   scope: "sales"
+
+config:
+  NODE_ENV: "development"
+  LOG_LEVEL: "debug"
