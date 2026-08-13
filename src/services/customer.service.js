@@ -3,81 +3,57 @@ const { createCustomer } = require('../models/customer');
 
 const COLLECTION_NAME = 'customers';
 
-/**
- * Obtiene todos los clientes de la colección
- */
-async function getAll() {
-  return query(
-    `
-      SELECT META(c).id, c.*
-      FROM \`${process.env.COUCHBASE_BUCKET}\`.\`${process.env.COUCHBASE_SCOPE}\`.\`${COLLECTION_NAME}\` AS c
-    `
-  );
+async function getAll(params = {}) {
+  const { country, limit = 100 } = params;
+  let queryString = `SELECT META(c).id, c.* FROM \`${process.env.COUCHBASE_BUCKET}\`.\`${process.env.COUCHBASE_SCOPE}\`.\`${COLLECTION_NAME}\` AS c`;
+  
+  const queryParams = {};
+  if (country) {
+    queryString += ` WHERE c.country = $country`;
+    queryParams.country = country;
+  }
+  
+  queryString += ` LIMIT ${limit}`;
+  
+  return query(queryString, queryParams);
 }
 
-async function createCustomerRecord(data) {
+async function create(data) {
   const customer = createCustomer(data);
-
   const collection = getScope().collection(COLLECTION_NAME);
-
   await collection.insert(customer.id, customer);
-
   return customer;
 }
 
-async function getCustomer(id) {
+async function getById(id) {
   const collection = getScope().collection(COLLECTION_NAME);
-
   const result = await collection.get(id);
-
   return result.content;
 }
 
-async function updateCustomer(id, data) {
+async function update(id, data) {
   const collection = getScope().collection(COLLECTION_NAME);
-
   const existing = await collection.get(id);
-
   const customer = {
     ...existing.content,
     ...data,
     id,
     updatedAt: new Date().toISOString(),
   };
-
   await collection.replace(id, customer);
-
   return customer;
 }
 
 async function deleteCustomer(id) {
   const collection = getScope().collection(COLLECTION_NAME);
-
   await collection.remove(id);
-
-  return {
-    id,
-    deleted: true,
-  };
+  return { id, deleted: true };
 }
 
-async function findByCountry(country) {
-  return query(
-    `
-      SELECT META(c).id, c.*
-      FROM \`${process.env.COUCHBASE_BUCKET}\`.\`${process.env.COUCHBASE_SCOPE}\`.\`${COLLECTION_NAME}\` AS c
-      WHERE c.country = $country
-    `,
-    { country },
-  );
-}
-
-// Asegúrate de incluir getAll en el module.exports
 module.exports = {
   getAll,
-  createCustomerRecord,
-  getCustomer,
-  updateCustomer,
-  deleteCustomer,
-  findByCountry,
+  create,      // Antes era createCustomerRecord
+  getById,     // Antes era getCustomer
+  update,
+  delete: deleteCustomer,
 };
