@@ -3,6 +3,18 @@ const { createCustomer } = require('../models/customer');
 
 const COLLECTION_NAME = 'customers';
 
+/**
+ * Obtiene todos los clientes de la colección
+ */
+async function getAll() {
+  return query(
+    `
+      SELECT META(c).id, c.*
+      FROM \`${process.env.COUCHBASE_BUCKET}\`.\`${process.env.COUCHBASE_SCOPE}\`.\`${COLLECTION_NAME}\` AS c
+    `
+  );
+}
+
 async function createCustomerRecord(data) {
   const customer = createCustomer(data);
 
@@ -60,7 +72,9 @@ async function findByCountry(country) {
   );
 }
 
+// Asegúrate de incluir getAll en el module.exports
 module.exports = {
+  getAll,
   createCustomerRecord,
   getCustomer,
   updateCustomer,
