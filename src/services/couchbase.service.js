@@ -9,7 +9,7 @@ class CouchbaseService {
     this.scope = null;
     this.connected = false;
 
-    // Vincular funciones para evitar errores de 'this'
+    // Vinculamos funciones para evitar errores de 'this'
     this.connect = this.connect.bind(this);
     this.query = this.query.bind(this);
     this.getScope = this.getScope.bind(this);
@@ -20,7 +20,9 @@ class CouchbaseService {
   async connect() {
     try {
       if (this.connected) return true;
-      
+
+      logger.info(`Connecting to Couchbase: ${config.couchbase.connectionString}`);
+
       this.cluster = await couchbase.connect(config.couchbase.connectionString, {
         username: config.couchbase.username,
         password: config.couchbase.password,
@@ -30,7 +32,7 @@ class CouchbaseService {
       this.bucket = this.cluster.bucket(config.couchbase.bucket);
       this.scope = this.bucket.scope(config.couchbase.scope);
       this.connected = true;
-      
+
       logger.info('Connected to Couchbase Cluster');
       return true;
     } catch (error) {
@@ -40,7 +42,6 @@ class CouchbaseService {
     }
   }
 
-  // ✅ ESTA ES LA FUNCIÓN QUE FALTABA
   async ping() {
     if (!this.connected || !this.bucket) {
       throw new Error('Couchbase not connected');
@@ -64,7 +65,12 @@ class CouchbaseService {
       if (!this.connected) {
         return { status: 'unhealthy', couchbase: 'disconnected' };
       }
-      await this.ping(); // Ahora esta función sí existe
+      await this.ping();
       return { status: 'healthy', couchbase: 'connected' };
     } catch (error) {
-      return { status: 'unhealthy', couchbase: 'error', error: error.me
+      return { status: 'unhealthy', couchbase: 'error', error: error.message };
+    }
+  }
+}
+
+module.exports = new CouchbaseService();
