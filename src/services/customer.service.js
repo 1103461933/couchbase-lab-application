@@ -1,4 +1,5 @@
-// IMPORTANTE: Este archivo requiere al anterior
+// src/services/customer.service.js
+
 const couchbaseService = require('./couchbase.service');
 const { createCustomer } = require('../models/customer');
 
@@ -6,7 +7,6 @@ const COLLECTION_NAME = 'customers';
 
 async function getAll(params = {}) {
   const { country, limit = 100 } = params;
-  
   const bucketName = process.env.COUCHBASE_BUCKET;
   const scopeName = process.env.COUCHBASE_SCOPE;
   
@@ -17,17 +17,33 @@ async function getAll(params = {}) {
     statement += ` WHERE c.country = $country`;
     queryParams.country = country;
   }
-  
   statement += ` LIMIT ${limit}`;
   
-  // Llamamos a la función query del servicio de conexión
   return couchbaseService.query(statement, queryParams);
 }
 
+// ✅ FUNCIÓN CORREGIDA
 async function create(data) {
+  // 1. Usamos el modelo para formatear el objeto
   const customer = createCustomer(data);
+  
+  // 2. REFUERZO: Si el modelo no generó el ID porque el validador quitó el campo,
+  // lo tomamos directamente del customerId que sí viene en los datos.
+  const docId = customer.id || data.customerId;
+
+  if (!docId) {
+    throw new Error("No se pudo determinar un ID válido para el cliente (falta customerId)");
+  }
+
+  // Aseguramos que el objeto que se guarda tenga el campo id
+  customer.id = docId;
+
   const collection = couchbaseService.getScope().collection(COLLECTION_NAME);
-  await collection.insert(customer.id, customer);
+
+  // 3. Insertamos usando docId como llave principal (Key)
+  // Esto evita el error "invalid argument"
+  await collection.insert(docId, customer);
+  
   return customer;
 }
 
@@ -51,7 +67,6 @@ async function deleteCustomer(id) {
   return { id, deleted: true };
 }
 
-// Exportamos las funciones que la RUTA está buscando
 module.exports = {
   getAll,
   create,
