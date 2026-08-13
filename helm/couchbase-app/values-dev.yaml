@@ -3,7 +3,7 @@ replicaCount: 2
 
 image:
   repository: xlen911/couchbase-app
-  tag: 1.0.15
+  tag: 1.0.16
   pullPolicy: Always
 
 service:
