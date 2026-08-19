@@ -10,7 +10,6 @@ service:
   port: 80
   targetPort: 3000
 
-# ✅ Agregar sección de Ingress
 ingress:
   enabled: false
   className: "nginx"
@@ -22,7 +21,13 @@ ingress:
           pathType: Prefix
   tls: []
 
-# ✅ Agregar sección couchbase
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
 couchbase:
   connectionString: "couchbase://couchbase-cluster.couchbase-dev.svc.cluster.local"
   username: "Administrator"
@@ -30,7 +35,20 @@ couchbase:
   bucket: "customers"
   scope: "sales"
 
-# ✅ Agregar otras configuraciones
-config:
-  NODE_ENV: "production"
-  LOG_LEVEL: "info"
+# ✅ Agregar sección de environment
+env:
+  nodeEnv: "production"
+  logLevel: "info"
+  port: "3000"
+  maxConnections: "100"
+  queryTimeout: "30000"
+  maxQueryLimit: "1000"
+  corsOrigin: "*"
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
